@@ -2,11 +2,17 @@ import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import WebSocket from "ws";
 import { getRequiredEnv } from "./env";
 
 export type SupabaseServerClient = Awaited<
   ReturnType<typeof createSupabaseServerClient>
 >;
+
+const realtimeTransport =
+  typeof globalThis.WebSocket === "function"
+    ? globalThis.WebSocket
+    : (WebSocket as unknown as typeof globalThis.WebSocket);
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
@@ -47,6 +53,9 @@ export function createServiceRoleClient() {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
+      },
+      realtime: {
+        transport: realtimeTransport,
       },
     },
   );
