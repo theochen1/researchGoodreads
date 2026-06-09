@@ -46,7 +46,7 @@ export function AdminUsersClient() {
     void loadUsers();
   }, []);
 
-  async function approveUser() {
+  async function allowlistUser() {
     setIsSaving(true);
     setStatus(null);
 
@@ -59,15 +59,17 @@ export function AdminUsersClient() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.error?.message ?? "Approval failed");
+        throw new Error(payload.error?.message ?? "Allowlist update failed");
       }
 
       setEmail("");
       setIsAdmin(false);
-      setStatus(`Approved ${payload.data.email}`);
+      setStatus(`Allowlisted ${payload.data.email}`);
       await loadUsers();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Approval failed");
+      setStatus(
+        error instanceof Error ? error.message : "Allowlist update failed",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -77,10 +79,10 @@ export function AdminUsersClient() {
     <section className="surface">
       <div className="form-grid">
         <div>
-          <h2 className="section-title">Invite or approve beta user</h2>
+          <h2 className="section-title">Beta allowlist</h2>
           <p className="page-subtitle">
-            Admin API routes handle invite approval and keep admin state out of
-            user-editable profile metadata.
+            Add or update beta users directly in Supabase. Marking a user as
+            admin grants access to the admin workspace after they sign in.
           </p>
         </div>
         <form className="admin-inline-form">
@@ -102,10 +104,10 @@ export function AdminUsersClient() {
           <button
             className="button primary"
             disabled={!email || isSaving}
-            onClick={approveUser}
+            onClick={allowlistUser}
             type="button"
           >
-            {isSaving ? "Approving" : "Approve"}
+            {isSaving ? "Saving" : "Allowlist"}
           </button>
         </form>
       </div>
@@ -116,7 +118,7 @@ export function AdminUsersClient() {
             <tr>
               <th>Email</th>
               <th>Status</th>
-              <th>Admin</th>
+              <th>Role</th>
               <th>Updated</th>
             </tr>
           </thead>
@@ -126,10 +128,10 @@ export function AdminUsersClient() {
                 <td>{user.email}</td>
                 <td>
                   <span className="badge">
-                    {user.approved_at ? "Approved" : "Invited"}
+                    {user.approved_at ? "Allowlisted" : "Invited"}
                   </span>
                 </td>
-                <td>{user.is_admin ? "Yes" : "No"}</td>
+                <td>{user.is_admin ? "Admin" : "Beta user"}</td>
                 <td>{new Date(user.updated_at).toLocaleDateString()}</td>
               </tr>
             ))}
