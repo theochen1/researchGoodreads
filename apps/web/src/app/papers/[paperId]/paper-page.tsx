@@ -534,12 +534,22 @@ export function PaperPage({ paperId }: PaperPageProps) {
           )}
           <div className="source-links">
             {data.paper.canonical_url ? (
-              <a className="button" href={data.paper.canonical_url}>
+              <a
+                className="button"
+                href={data.paper.canonical_url}
+                rel="noreferrer"
+                target="_blank"
+              >
                 Source
               </a>
             ) : null}
             {data.paper.pdf_url ? (
-              <a className="button" href={data.paper.pdf_url}>
+              <a
+                className="button"
+                href={data.paper.pdf_url}
+                rel="noreferrer"
+                target="_blank"
+              >
                 PDF
               </a>
             ) : null}

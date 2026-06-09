@@ -393,7 +393,11 @@ export function LibraryTable() {
                 <td>
                   <div className="paper-cell-title">
                     {item.papers?.id ? (
-                      <Link href={`/papers/${item.papers.id}`}>
+                      <Link
+                        href={`/papers/${item.papers.id}`}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
                         {item.papers.title}
                       </Link>
                     ) : (
