@@ -6,7 +6,7 @@ import {
   isActiveBetaAccessRow,
 } from "./access";
 import { hashExtensionToken } from "./crypto";
-import { getOptionalEnv, isEmailInAllowlist } from "./env";
+import { getOptionalAdminEmailAllowlist, isEmailInAllowlist } from "./env";
 import {
   createServiceRoleClient,
   createSupabaseServerClient,
@@ -76,7 +76,7 @@ export async function requireAdmin(
     currentUser.email &&
     isEmailInAllowlist(
       currentUser.email,
-      getOptionalEnv("ADMIN_EMAIL_ALLOWLIST"),
+      getOptionalAdminEmailAllowlist(),
     )
   ) {
     return currentUser;

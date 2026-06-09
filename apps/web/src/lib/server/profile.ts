@@ -2,7 +2,11 @@ import {
   createServiceRoleClient,
   createSupabaseServerClient,
 } from "./supabase";
-import { getOptionalEnv } from "./env";
+import {
+  getOptionalSupabaseAnonKey,
+  getOptionalSupabaseServiceRoleKey,
+  getOptionalSupabaseUrl,
+} from "./env";
 
 export type Profile = {
   id: string;
@@ -14,9 +18,9 @@ export type Profile = {
 
 export async function getOptionalCurrentProfile(): Promise<Profile | null> {
   if (
-    !getOptionalEnv("NEXT_PUBLIC_SUPABASE_URL") ||
-    !getOptionalEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
-    !getOptionalEnv("SUPABASE_SERVICE_ROLE_KEY")
+    !getOptionalSupabaseUrl() ||
+    !getOptionalSupabaseAnonKey() ||
+    !getOptionalSupabaseServiceRoleKey()
   ) {
     return null;
   }

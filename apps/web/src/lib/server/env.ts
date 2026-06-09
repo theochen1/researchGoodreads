@@ -1,6 +1,4 @@
-export function getRequiredEnv(name: string): string {
-  const value = process.env[name];
-
+function getRequiredValue(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -8,8 +6,41 @@ export function getRequiredEnv(name: string): string {
   return value;
 }
 
-export function getOptionalEnv(name: string): string | undefined {
-  return process.env[name] || undefined;
+export function getRequiredSupabaseUrl(): string {
+  return getRequiredValue(
+    "NEXT_PUBLIC_SUPABASE_URL",
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+  );
+}
+
+export function getRequiredSupabaseAnonKey(): string {
+  return getRequiredValue(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
+}
+
+export function getRequiredSupabaseServiceRoleKey(): string {
+  return getRequiredValue(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
+}
+
+export function getOptionalAdminEmailAllowlist(): string | undefined {
+  return process.env.ADMIN_EMAIL_ALLOWLIST || undefined;
+}
+
+export function getOptionalSupabaseUrl(): string | undefined {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || undefined;
+}
+
+export function getOptionalSupabaseAnonKey(): string | undefined {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || undefined;
+}
+
+export function getOptionalSupabaseServiceRoleKey(): string | undefined {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || undefined;
 }
 
 export function parseEmailAllowlist(value: string | undefined): Set<string> {
