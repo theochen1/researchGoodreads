@@ -671,17 +671,12 @@ textarea:disabled {
 
 .feed-item-header {
   display: flex;
-  justify-content: space-between;
   gap: 12px;
   color: var(--text-soft);
   font-size: 12px;
 }
 
-.compact-toolbar {
-  margin-bottom: 0;
-}
-
-.feed-comment {
+.feed-activity {
   margin: 0;
   color: var(--text-soft);
   font-size: 13px;

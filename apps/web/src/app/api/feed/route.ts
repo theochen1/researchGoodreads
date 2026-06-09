@@ -6,10 +6,65 @@ import { trackEvent } from "@/lib/server/analytics";
 import { getActiveBetaUserIds } from "@/lib/server/access";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 
+const readingStateLabels = {
+  want_to_read: "Want to read",
+  reading: "Reading",
+  read: "Read",
+  deep_read: "Deep read",
+  skipped: "Skipped",
+} as const;
+
+const recommendationSignalLabels = {
+  worth_reading: "Worth reading",
+  worth_skimming: "Worth skimming",
+  useful_reference: "Useful reference",
+  not_worth_prioritizing: "Not worth prioritizing",
+  unsure: "Unsure",
+} as const;
+
 type FeedCursor = {
   latestVisibleAt: string;
   userPaperId: string;
 };
+
+function deriveActivitySummary(row: {
+  latest_visible_at: string;
+  added_at: string;
+  state_updated_at: string;
+  signal_updated_at: string | null;
+  comment_updated_at: string | null;
+  visible_comment: string | null;
+  reading_state: keyof typeof readingStateLabels;
+  recommendation_signal: keyof typeof recommendationSignalLabels | null;
+}) {
+  if (row.latest_visible_at === row.added_at) {
+    return `Added to library as ${readingStateLabels[row.reading_state]}`;
+  }
+
+  if (
+    row.comment_updated_at &&
+    row.latest_visible_at === row.comment_updated_at
+  ) {
+    return row.visible_comment
+      ? "Added a visible comment"
+      : "Cleared visible comment";
+  }
+
+  if (
+    row.signal_updated_at &&
+    row.latest_visible_at === row.signal_updated_at
+  ) {
+    return row.recommendation_signal
+      ? `Set recommendation to ${recommendationSignalLabels[row.recommendation_signal]}`
+      : "Cleared recommendation";
+  }
+
+  if (row.latest_visible_at === row.state_updated_at) {
+    return `Updated reading status to ${readingStateLabels[row.reading_state]}`;
+  }
+
+  return `Updated reading status to ${readingStateLabels[row.reading_state]}`;
+}
 
 function parseCursor(value: string | null): FeedCursor | null {
   if (!value) {
@@ -77,7 +132,7 @@ export const GET = withApiRoute(async (request) => {
   let feedQuery = serviceClient
     .from("user_papers")
     .select(
-      "id,user_id,paper_id,reading_state,recommendation_signal,visible_comment,latest_visible_at,papers(id,title,authors,year,venue,abstract,source_type)",
+      "id,user_id,paper_id,reading_state,recommendation_signal,visible_comment,added_at,state_updated_at,signal_updated_at,comment_updated_at,latest_visible_at,papers(id,title,authors,year,venue,source_type)",
     )
     .in("user_id", activeFollowedUserIds)
     .is("removed_at", null)
@@ -134,6 +189,7 @@ export const GET = withApiRoute(async (request) => {
     items: pageRows.map((row) => ({
       id: row.id,
       latestVisibleAt: row.latest_visible_at,
+      activitySummary: deriveActivitySummary(row),
       readingState: row.reading_state,
       recommendationSignal: row.recommendation_signal,
       visibleComment: row.visible_comment,

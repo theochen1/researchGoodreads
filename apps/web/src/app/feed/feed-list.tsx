@@ -9,25 +9,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo } from "react";
 
-const stateLabels: Record<ReadingState, string> = {
-  want_to_read: "Want to read",
-  reading: "Reading",
-  read: "Read",
-  deep_read: "Deep read",
-  skipped: "Skipped",
-};
-
-const signalLabels: Record<RecommendationSignal, string> = {
-  worth_reading: "Worth reading",
-  worth_skimming: "Worth skimming",
-  useful_reference: "Useful reference",
-  not_worth_prioritizing: "Not worth prioritizing",
-  unsure: "Unsure",
-};
-
 type FeedItem = {
   id: string;
   latestVisibleAt: string;
+  activitySummary: string;
   readingState: ReadingState;
   recommendationSignal: RecommendationSignal | null;
   visibleComment: string | null;
@@ -35,9 +20,6 @@ type FeedItem = {
     id: string;
     title: string;
     authors: string[] | null;
-    year: number | null;
-    venue: string | null;
-    abstract: string | null;
     source_type: SourceType;
   } | null;
   profile: {
@@ -102,36 +84,14 @@ export function FeedList() {
           >
             <div className="feed-item-header">
               <strong>{item.profile?.name ?? "Beta user"}</strong>
-              <span className="muted-text">
-                {new Date(item.latestVisibleAt).toLocaleString()}
-              </span>
             </div>
             <div className="paper-cell-title">
               {item.paper?.title ?? "Untitled paper"}
             </div>
             <div className="paper-cell-meta">
-              {[
-                item.paper?.authors?.join(", "),
-                item.paper?.year,
-                item.paper?.venue,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
+              {item.paper?.authors?.join(", ") ?? ""}
             </div>
-            {item.paper?.abstract ? (
-              <p className="paper-abstract-preview">{item.paper.abstract}</p>
-            ) : null}
-            <div className="toolbar compact-toolbar">
-              <span className="badge">{stateLabels[item.readingState]}</span>
-              {item.recommendationSignal ? (
-                <span className="badge">
-                  {signalLabels[item.recommendationSignal]}
-                </span>
-              ) : null}
-            </div>
-            {item.visibleComment ? (
-              <p className="feed-comment">{item.visibleComment}</p>
-            ) : null}
+            <p className="feed-activity">{item.activitySummary}</p>
           </Link>
         ))}
         {!feedQuery.isLoading && items.length === 0 ? (
