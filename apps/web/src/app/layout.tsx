@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { getOptionalCurrentProfile } from "@/lib/server/profile";
 import { AppShell } from "./app-shell";
 import { Providers } from "./providers";
 import "./globals.css";
-
-// Vercel resolves multiple React type identities in this workspace.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LayoutChildren = any;
 
 export const metadata: Metadata = {
   title: "Cairn",
@@ -16,7 +13,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: LayoutChildren;
+  children: ReactNode;
 }>) {
   const profile = await getOptionalCurrentProfile();
 

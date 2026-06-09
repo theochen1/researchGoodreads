@@ -3,6 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.4",
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.7",
+      "react-dom": "19.2.7",
+      "@types/react": "19.2.17",
+      "@types/react-dom": "19.2.3"
+    }
+  },
   "scripts": {
     "dev": "pnpm --filter @cairn/web dev",
     "build": "pnpm --filter @cairn/shared build && pnpm --filter @cairn/web build",

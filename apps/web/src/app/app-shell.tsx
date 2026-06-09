@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,11 +24,6 @@ type NavigationItem = {
   icon: LucideIcon;
 };
 
-// Duplicate React type graphs can appear in the monorepo install on Vercel.
-// Keep the boundary untyped here and let React handle the runtime child shape.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AppShellChildren = any;
-
 const navItems: NavigationItem[] = [
   { href: "/library", label: "Library", icon: Library },
   { href: "/feed", label: "Feed", icon: Newspaper },
@@ -51,7 +46,7 @@ export function AppShell({
   children,
   profile,
 }: {
-  children: AppShellChildren;
+  children: ReactNode;
   profile: CurrentProfile;
 }) {
   const pathname = usePathname();
