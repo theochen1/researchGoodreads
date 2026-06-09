@@ -143,20 +143,27 @@ export function AppShell({
           </div>
           <div className="account-actions">
             {profile ? (
+              <>
+                <Link
+                  href="/profile"
+                  onClick={(event) => navigate(event, "/profile", "Profile")}
+                >
+                  @{profile.username}
+                </Link>
+                <form action="/auth/sign-out" method="post">
+                  <button className="account-action-button" type="submit">
+                    Logout
+                  </button>
+                </form>
+              </>
+            ) : (
               <Link
-                href="/profile"
-                onClick={(event) => navigate(event, "/profile", "Profile")}
+                href="/login"
+                onClick={(event) => navigate(event, "/login", "Sign in")}
               >
-                @{profile.username}
+                Sign in
               </Link>
-            ) : null}
-            <Link
-              href="/login"
-              onClick={(event) => navigate(event, "/login", "Sign in")}
-            >
-              Sign in
-            </Link>
-            <Link href="/auth/sign-out">Logout</Link>
+            )}
           </div>
         </div>
       </aside>

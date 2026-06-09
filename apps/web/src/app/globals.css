@@ -241,8 +241,30 @@ textarea:disabled {
   font-size: 12px;
 }
 
+.account-actions form {
+  margin: 0;
+}
+
 .account-actions a:hover {
   color: var(--text);
+}
+
+.account-action-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.account-action-button:hover {
+  color: var(--text);
+}
+
+.account-action-button:focus-visible {
+  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .main {
