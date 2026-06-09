@@ -6,6 +6,7 @@ import {
   type ReadingState,
   type SourceType,
 } from "@cairn/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -107,6 +108,7 @@ function hasDraftContent(draft: Draft) {
 
 export function AddPaperForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [input, setInput] = useState("");
   const [readingState, setReadingState] =
     useState<ReadingState>("want_to_read");
@@ -146,13 +148,13 @@ export function AddPaperForm() {
 
       setDraft(nextDraft);
       setHasResolvedDraft(true);
-      setIsManualOpen(requiresManualReview(nextDraft));
+      setIsManualOpen(true);
       setStatus(
         payload.data.existingPaper
-          ? "Existing paper found. Confirm to add it to your library."
+          ? "Existing paper found. Review the details, then save it to your library."
           : requiresManualReview(nextDraft)
-            ? "Metadata draft ready. Some fields need manual review."
-            : "Metadata draft ready.",
+            ? "Metadata resolved. Review the details, complete any missing fields, then save."
+            : "Metadata resolved. Review the details, then save to add it to your library.",
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Resolve failed");
@@ -212,7 +214,13 @@ export function AddPaperForm() {
         throw new Error(payload.error?.message ?? "Save failed");
       }
 
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["library"] }),
+        queryClient.invalidateQueries({ queryKey: ["feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["paper"] }),
+      ]);
       router.push("/library");
+      router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Save failed");
     } finally {
