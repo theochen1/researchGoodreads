@@ -1,6 +1,9 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/server/auth";
+
+// Vercel resolves multiple React type identities in this workspace.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LayoutChildren = any;
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,7 @@ const adminLinks = [
 export default async function AdminLayout({
   children,
 }: Readonly<{
-  children: ReactNode;
+  children: LayoutChildren;
 }>) {
   await requireAdmin();
 

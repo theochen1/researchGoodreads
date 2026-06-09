@@ -7,8 +7,11 @@ import {
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
-import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+
+// Duplicate React type graphs can appear in the monorepo install on Vercel.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProviderChildren = any;
 
 type LibrarySortMode = "updated" | "added";
 type LibraryStateFilter = "all" | ReadingState;
@@ -167,7 +170,7 @@ export function Providers({
   children,
   shouldPrefetchAppData,
 }: {
-  children: ReactNode;
+  children: ProviderChildren;
   shouldPrefetchAppData: boolean;
 }) {
   const [queryClient] = useState(
