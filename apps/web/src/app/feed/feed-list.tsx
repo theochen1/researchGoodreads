@@ -79,8 +79,6 @@ export function FeedList() {
             className="feed-item"
             href={item.paper?.id ? `/papers/${item.paper.id}` : "/library"}
             key={item.id}
-            rel={item.paper?.id ? "noreferrer" : undefined}
-            target={item.paper?.id ? "_blank" : undefined}
           >
             <div className="feed-item-header">
               <strong>{item.profile?.name ?? "Beta user"}</strong>
