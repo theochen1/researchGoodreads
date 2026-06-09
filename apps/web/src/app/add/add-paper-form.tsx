@@ -89,6 +89,22 @@ function draftFromApi(apiDraft: ApiDraft): Draft {
   };
 }
 
+function requiresManualReview(draft: Draft) {
+  return !draft.title.trim() || !draft.authors.trim() || !draft.year.trim();
+}
+
+function hasDraftContent(draft: Draft) {
+  return Boolean(
+    draft.title ||
+      draft.authors ||
+      draft.year ||
+      draft.venue ||
+      draft.abstract ||
+      draft.canonicalUrl ||
+      draft.pdfUrl,
+  );
+}
+
 export function AddPaperForm() {
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -98,6 +114,8 @@ export function AddPaperForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
+  const [hasResolvedDraft, setHasResolvedDraft] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -124,18 +142,37 @@ export function AddPaperForm() {
         throw new Error(payload.error?.message ?? "Resolve failed");
       }
 
-      setDraft(draftFromApi(payload.data.draft));
+      const nextDraft = draftFromApi(payload.data.draft);
+
+      setDraft(nextDraft);
+      setHasResolvedDraft(true);
+      setIsManualOpen(requiresManualReview(nextDraft));
       setStatus(
         payload.data.existingPaper
           ? "Existing paper found. Confirm to add it to your library."
-          : "Metadata draft ready.",
+          : requiresManualReview(nextDraft)
+            ? "Metadata draft ready. Some fields need manual review."
+            : "Metadata draft ready.",
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Resolve failed");
       setDraft({ ...emptyDraft, title: input, sourceType: "manual" });
+      setHasResolvedDraft(true);
+      setIsManualOpen(true);
     } finally {
       setIsResolving(false);
     }
+  }
+
+  function openManualEntry() {
+    setDraft((current) =>
+      current.title || !input
+        ? current
+        : { ...current, title: input, sourceType: "manual" },
+    );
+    setHasResolvedDraft(true);
+    setIsManualOpen(true);
+    setStatus(null);
   }
 
   async function savePaper() {
@@ -226,109 +263,154 @@ export function AddPaperForm() {
       </div>
 
       <div className="form-grid confirmation-grid">
-        <label>
-          <span className="account-label">Title</span>
-          <input
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, title: event.target.value }))
-            }
-            value={draft.title}
-          />
-        </label>
-        <label>
-          <span className="account-label">Authors</span>
-          <input
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                authors: event.target.value,
-              }))
-            }
-            placeholder="Comma-separated"
-            value={draft.authors}
-          />
-        </label>
-        <label>
-          <span className="account-label">Year</span>
-          <input
-            className="input"
-            inputMode="numeric"
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, year: event.target.value }))
-            }
-            value={draft.year}
-          />
-        </label>
-        <label>
-          <span className="account-label">Source</span>
-          <select
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                sourceType: event.target.value as SourceType,
-              }))
-            }
-            value={draft.sourceType}
-          >
-            {sourceTypes.map((sourceType) => (
-              <option key={sourceType} value={sourceType}>
-                {sourceTypeLabels[sourceType]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="account-label">Venue</span>
-          <input
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, venue: event.target.value }))
-            }
-            value={draft.venue}
-          />
-        </label>
-        <label>
-          <span className="account-label">Abstract</span>
-          <textarea
-            className="textarea"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                abstract: event.target.value,
-              }))
-            }
-            value={draft.abstract}
-          />
-        </label>
-        <label>
-          <span className="account-label">Canonical URL</span>
-          <input
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                canonicalUrl: event.target.value,
-              }))
-            }
-            value={draft.canonicalUrl}
-          />
-        </label>
-        <label>
-          <span className="account-label">PDF URL</span>
-          <input
-            className="input"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                pdfUrl: event.target.value,
-              }))
-            }
-            value={draft.pdfUrl}
-          />
-        </label>
+        <div className="collapsible-header">
+          <div>
+            <h2 className="section-title">Paper details</h2>
+            <p className="page-subtitle">
+              {hasResolvedDraft && hasDraftContent(draft)
+                ? "Save the resolved draft directly, or open manual details to edit missing fields."
+                : "Resolve metadata first, or open manual details to add the paper yourself."}
+            </p>
+          </div>
+          <div className="toolbar compact-toolbar">
+            <button
+              aria-expanded={isManualOpen}
+              className="button"
+              onClick={() =>
+                isManualOpen ? setIsManualOpen(false) : openManualEntry()
+              }
+              type="button"
+            >
+              {isManualOpen ? "Hide Manual Details" : "Manual Entry"}
+            </button>
+          </div>
+        </div>
+        {hasDraftContent(draft) ? (
+          <div className="resolved-summary">
+            <strong className="paper-cell-title">
+              {draft.title || "Untitled paper"}
+            </strong>
+            <div className="paper-cell-meta">
+              {[draft.authors, draft.year, draft.venue].filter(Boolean).join(" · ")}
+            </div>
+          </div>
+        ) : null}
+        {isManualOpen ? (
+          <div className="manual-entry-grid">
+            <label>
+              <span className="account-label">Title</span>
+              <input
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    title: event.target.value,
+                  }))
+                }
+                value={draft.title}
+              />
+            </label>
+            <label>
+              <span className="account-label">Authors</span>
+              <input
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    authors: event.target.value,
+                  }))
+                }
+                placeholder="Comma-separated"
+                value={draft.authors}
+              />
+            </label>
+            <label>
+              <span className="account-label">Year</span>
+              <input
+                className="input"
+                inputMode="numeric"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    year: event.target.value,
+                  }))
+                }
+                value={draft.year}
+              />
+            </label>
+            <label>
+              <span className="account-label">Source</span>
+              <select
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    sourceType: event.target.value as SourceType,
+                  }))
+                }
+                value={draft.sourceType}
+              >
+                {sourceTypes.map((sourceType) => (
+                  <option key={sourceType} value={sourceType}>
+                    {sourceTypeLabels[sourceType]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="account-label">Venue</span>
+              <input
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    venue: event.target.value,
+                  }))
+                }
+                value={draft.venue}
+              />
+            </label>
+            <label>
+              <span className="account-label">Abstract</span>
+              <textarea
+                className="textarea"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    abstract: event.target.value,
+                  }))
+                }
+                value={draft.abstract}
+              />
+            </label>
+            <label>
+              <span className="account-label">Canonical URL</span>
+              <input
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    canonicalUrl: event.target.value,
+                  }))
+                }
+                value={draft.canonicalUrl}
+              />
+            </label>
+            <label>
+              <span className="account-label">PDF URL</span>
+              <input
+                className="input"
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    pdfUrl: event.target.value,
+                  }))
+                }
+                value={draft.pdfUrl}
+              />
+            </label>
+          </div>
+        ) : null}
         <div>
           <button
             className="button primary"

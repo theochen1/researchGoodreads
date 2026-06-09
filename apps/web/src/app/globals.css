@@ -688,6 +688,28 @@ textarea:disabled {
   background: #fbfbfa;
 }
 
+.collapsible-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.resolved-summary {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.manual-entry-grid {
+  display: grid;
+  gap: 12px;
+}
+
 .status-line {
   border-left: 2px solid var(--accent);
   background: #fbfbfa;
