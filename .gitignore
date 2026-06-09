@@ -1,0 +1,13 @@
+.DS_Store
+.next
+.plasmo
+**/.plasmo
+supabase/.temp
+apps/extension/build
+dist
+node_modules
+coverage
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo

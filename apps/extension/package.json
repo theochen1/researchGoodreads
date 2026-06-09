@@ -1,0 +1,39 @@
+{
+  "name": "@cairn/extension",
+  "displayName": "Cairn",
+  "description": "Save research papers to Cairn from the current tab.",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "manifest": {
+    "name": "Cairn",
+    "description": "Save research papers to Cairn from the current tab.",
+    "permissions": [
+      "activeTab",
+      "storage",
+      "tabs"
+    ],
+    "host_permissions": [
+      "http://localhost:3000/*",
+      "https://*/*"
+    ]
+  },
+  "dependencies": {
+    "@cairn/shared": "workspace:*",
+    "plasmo": "^0.90.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^22.18.0",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "svgo": "^3.3.2",
+    "typescript": "^5.9.3"
+  }
+}

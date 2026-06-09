@@ -1,0 +1,21 @@
+{
+  "name": "cairn",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --filter @cairn/web dev",
+    "build": "pnpm --filter @cairn/shared build && pnpm --filter @cairn/web build",
+    "lint": "pnpm --filter @cairn/web lint",
+    "typecheck": "pnpm --filter @cairn/shared typecheck && pnpm --filter @cairn/web typecheck && pnpm --filter @cairn/extension typecheck",
+    "test": "pnpm --filter @cairn/shared test && pnpm --filter @cairn/web test",
+    "smoke:sql": "node scripts/run-sql-smoke.mjs",
+    "verify:v0": "pnpm smoke:sql && pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm --filter @cairn/extension build && pnpm format",
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}
