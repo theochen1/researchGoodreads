@@ -5,6 +5,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Shield,
   Library,
   Newspaper,
   PlusCircle,
@@ -16,6 +17,7 @@ import {
 type CurrentProfile = {
   name: string;
   username: string;
+  isAdmin: boolean;
 } | null;
 
 type NavigationItem = {
@@ -31,6 +33,12 @@ const navItems: NavigationItem[] = [
   { href: "/people", label: "People", icon: Users },
   { href: "/profile", label: "Profile", icon: UserCircle },
 ];
+
+const adminNavItem: NavigationItem = {
+  href: "/admin",
+  label: "Admin",
+  icon: Shield,
+};
 
 function isModifiedClick(event: MouseEvent<HTMLAnchorElement>) {
   return (
@@ -53,6 +61,10 @@ export function AppShell({
   const router = useRouter();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [pendingLabel, setPendingLabel] = useState<string | null>(null);
+  const visibleNavItems = useMemo(
+    () => (profile?.isAdmin ? [...navItems, adminNavItem] : navItems),
+    [profile],
+  );
 
   const navigationLabel = useMemo(
     () => pendingLabel ?? "Loading",
@@ -69,12 +81,10 @@ export function AppShell({
       return;
     }
 
-    for (const item of navItems) {
+    for (const item of visibleNavItems) {
       router.prefetch(item.href);
     }
-
-    router.prefetch("/admin");
-  }, [profile, router]);
+  }, [profile, router, visibleNavItems]);
 
   function navigate(
     event: MouseEvent<HTMLAnchorElement>,
@@ -117,7 +127,7 @@ export function AppShell({
           <div className="brand-mark" aria-hidden="true" />
         </div>
         <nav className="nav-list" aria-label="Primary navigation">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);

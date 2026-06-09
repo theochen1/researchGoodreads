@@ -6,17 +6,21 @@ import {
   getOptionalSupabaseAnonKey,
   getOptionalSupabaseServiceRoleKey,
   getOptionalSupabaseUrl,
+  getOptionalAdminEmailAllowlist,
+  isEmailInAllowlist,
 } from "./env";
+import { isActiveBetaAccessRow } from "./access";
 
-export type Profile = {
+export type CurrentViewer = {
   id: string;
   name: string;
   username: string;
   affiliation: string | null;
   role: string | null;
+  isAdmin: boolean;
 };
 
-export async function getOptionalCurrentProfile(): Promise<Profile | null> {
+export async function getOptionalCurrentProfile(): Promise<CurrentViewer | null> {
   if (
     !getOptionalSupabaseUrl() ||
     !getOptionalSupabaseAnonKey() ||
@@ -36,17 +40,46 @@ export async function getOptionalCurrentProfile(): Promise<Profile | null> {
     }
 
     const serviceClient = createServiceRoleClient();
-    const { data, error } = await serviceClient
+    const { data: profile, error: profileError } = await serviceClient
       .from("profiles")
       .select("id,name,username,affiliation,role")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (error || !data) {
+    if (profileError || !profile) {
       return null;
     }
 
-    return data;
+    const email = user.email?.trim().toLowerCase() ?? null;
+    const adminFromEnv = isEmailInAllowlist(
+      email,
+      getOptionalAdminEmailAllowlist(),
+    );
+
+    if (adminFromEnv) {
+      return {
+        ...profile,
+        isAdmin: true,
+      };
+    }
+
+    const { data: accessRow, error: accessError } = await serviceClient
+      .from("beta_access")
+      .select("is_admin,approved_at,accepted_at,expires_at")
+      .ilike("email", email ?? "")
+      .maybeSingle();
+
+    if (accessError) {
+      return {
+        ...profile,
+        isAdmin: false,
+      };
+    }
+
+    return {
+      ...profile,
+      isAdmin: Boolean(accessRow?.is_admin && isActiveBetaAccessRow(accessRow)),
+    };
   } catch {
     return null;
   }
