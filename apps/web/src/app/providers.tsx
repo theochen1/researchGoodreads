@@ -7,6 +7,7 @@ import {
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 type LibrarySortMode = "updated" | "added";
@@ -166,7 +167,7 @@ export function Providers({
   children,
   shouldPrefetchAppData,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   shouldPrefetchAppData: boolean;
 }) {
   const [queryClient] = useState(

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { getOptionalCurrentProfile } from "@/lib/server/profile";
 import { AppShell } from "./app-shell";
 import { Providers } from "./providers";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   const profile = await getOptionalCurrentProfile();
 
