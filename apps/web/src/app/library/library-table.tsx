@@ -10,11 +10,13 @@ import {
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
   type InfiniteData,
 } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ProjectMembershipControl } from "@/app/projects/project-membership-control";
 
 const stateLabels: Record<ReadingState, string> = {
   want_to_read: "Want to read",
@@ -46,6 +48,10 @@ type LibraryItem = {
   state_updated_at: string;
   latest_visible_at: string;
   hasPrivateNote: boolean;
+  projects: {
+    id: string;
+    name: string;
+  }[];
   papers: {
     id: string;
     title: string;
@@ -65,6 +71,17 @@ const stateFilters: StateFilter[] = ["all", ...readingStates];
 type LibraryPayload = {
   items: LibraryItem[];
   nextCursor: string | null;
+};
+
+type ProjectsPayload = {
+  projects: {
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+    paperCount: number;
+  }[];
 };
 
 type UpdatePatch = {
@@ -117,6 +134,17 @@ async function deleteLibraryItem(userPaperId: string) {
   return payload.data as { removed: boolean };
 }
 
+async function fetchProjects() {
+  const response = await fetch("/api/projects");
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error?.message ?? "Projects load failed");
+  }
+
+  return payload.data as ProjectsPayload;
+}
+
 async function patchUserPaper(userPaperId: string, patch: UpdatePatch) {
   const response = await fetch(`/api/user-papers/${userPaperId}`, {
     method: "PATCH",
@@ -166,6 +194,11 @@ export function LibraryTable() {
     () => libraryData?.pages.flatMap((page) => page.items) ?? [],
     [libraryData],
   );
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: fetchProjects,
+  });
+  const availableProjects = projectsQuery.data?.projects ?? [];
   const activeFilterLabel =
     stateFilter === "all" ? "All papers" : stateLabels[stateFilter];
   const resultsTransitionKey = `${sortMode}:${stateFilter}`;
@@ -240,6 +273,8 @@ export function LibraryTable() {
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
       void queryClient.invalidateQueries({ queryKey: ["paper"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
 
@@ -414,6 +449,11 @@ export function LibraryTable() {
                       {item.papers.abstract}
                     </p>
                   ) : null}
+                  <ProjectMembershipControl
+                    assignedProjects={item.projects}
+                    availableProjects={availableProjects}
+                    userPaperId={item.id}
+                  />
                 </td>
                 <td>
                   <select

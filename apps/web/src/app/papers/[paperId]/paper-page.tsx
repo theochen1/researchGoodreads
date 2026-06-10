@@ -9,6 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ProjectMembershipControl } from "@/app/projects/project-membership-control";
 
 const stateLabels: Record<ReadingState, string> = {
   want_to_read: "Want to read",
@@ -50,6 +51,10 @@ type PaperPageData = {
     id: string;
     body: string;
   } | null;
+  projects: {
+    id: string;
+    name: string;
+  }[];
   followedContext: {
     id: string;
     reading_state: ReadingState;
@@ -61,6 +66,17 @@ type PaperPageData = {
       affiliation: string | null;
       role: string | null;
     } | null;
+  }[];
+};
+
+type ProjectsPayload = {
+  projects: {
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+    paperCount: number;
   }[];
 };
 
@@ -177,6 +193,17 @@ async function postVisibleComment(
   return payload.data as { saved: true; userPaperId: string };
 }
 
+async function fetchProjects() {
+  const response = await fetch("/api/projects");
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error?.message ?? "Projects load failed");
+  }
+
+  return payload.data as ProjectsPayload;
+}
+
 export function PaperPage({ paperId }: PaperPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -202,6 +229,11 @@ export function PaperPage({ paperId }: PaperPageProps) {
     queryKey: paperKey,
     queryFn: () => fetchPaperPage(paperId),
   });
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: fetchProjects,
+  });
+  const availableProjects = projectsQuery.data?.projects ?? [];
 
   useEffect(() => {
     if (paperQuery.data && "redirectPaperId" in paperQuery.data) {
@@ -258,6 +290,8 @@ export function PaperPage({ paperId }: PaperPageProps) {
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
 
@@ -291,6 +325,8 @@ export function PaperPage({ paperId }: PaperPageProps) {
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
       void queryClient.invalidateQueries({ queryKey: paperKey });
+      void queryClient.invalidateQueries({ queryKey: ["projects"] });
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
   });
 
@@ -623,6 +659,12 @@ export function PaperPage({ paperId }: PaperPageProps) {
                 ))}
               </select>
             </label>
+            <ProjectMembershipControl
+              assignedProjects={data.projects}
+              availableProjects={availableProjects}
+              paperQueryKey={paperKey}
+              userPaperId={data.userPaper.id}
+            />
             <label>
               <span className="account-label">Private note</span>
               <textarea

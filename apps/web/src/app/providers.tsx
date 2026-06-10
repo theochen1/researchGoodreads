@@ -31,6 +31,25 @@ type LibraryPreloadPage = {
   nextCursor: string | null;
 };
 
+type ProjectsPreloadPayload = {
+  projects: {
+    id: string;
+  }[];
+};
+
+type ProjectDetailPreloadPayload = {
+  project: {
+    id: string;
+  };
+  items: {
+    userPaper: {
+      papers: {
+        id: string;
+      } | null;
+    };
+  }[];
+};
+
 const primaryLibraryFilters: LibraryStateFilter[] = ["all", ...readingStates];
 
 function createLibraryQueryPath(
@@ -96,6 +115,10 @@ function AppDataPreloader({ enabled }: { enabled: boolean }) {
       queryKey: ["people", ""],
       queryFn: () => fetchJsonData("/api/follows?"),
     });
+    const projectsPrefetch = queryClient.fetchQuery({
+      queryKey: ["projects"],
+      queryFn: () => fetchJsonData<ProjectsPreloadPayload>("/api/projects"),
+    });
     const profilePrefetch = queryClient.prefetchQuery({
       queryKey: ["profile"],
       queryFn: () => fetchJsonData("/api/profile"),
@@ -147,6 +170,14 @@ function AppDataPreloader({ enabled }: { enabled: boolean }) {
         }
       }
 
+      const settledProjects = await Promise.allSettled([projectsPrefetch]);
+      const prefetchedProjectIds =
+        settledProjects[0]?.status === "fulfilled"
+          ? settledProjects[0].value.projects
+              .map((project) => project.id)
+              .slice(0, 3)
+          : [];
+
       await Promise.allSettled([
         peoplePrefetch,
         profilePrefetch,
@@ -154,6 +185,15 @@ function AppDataPreloader({ enabled }: { enabled: boolean }) {
           queryClient.prefetchQuery({
             queryKey: ["paper", paperId],
             queryFn: () => fetchJsonData(`/api/papers/${paperId}`),
+          }),
+        ),
+        ...prefetchedProjectIds.map((projectId) =>
+          queryClient.prefetchQuery({
+            queryKey: ["project", projectId],
+            queryFn: () =>
+              fetchJsonData<ProjectDetailPreloadPayload>(
+                `/api/projects/${projectId}`,
+              ),
           }),
         ),
       ]);

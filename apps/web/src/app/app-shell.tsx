@@ -8,6 +8,7 @@ import {
   Shield,
   Library,
   Newspaper,
+  FolderOpen,
   PlusCircle,
   UserCircle,
   Users,
@@ -30,6 +31,7 @@ const navItems: NavigationItem[] = [
   { href: "/library", label: "Library", icon: Library },
   { href: "/feed", label: "Feed", icon: Newspaper },
   { href: "/add", label: "Add Paper", icon: PlusCircle },
+  { href: "/projects", label: "Projects", icon: FolderOpen },
   { href: "/people", label: "People", icon: Users },
   { href: "/profile", label: "Profile", icon: UserCircle },
 ];
