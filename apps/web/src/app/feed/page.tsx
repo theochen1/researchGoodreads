@@ -12,7 +12,7 @@ export default async function FeedPage() {
         <div>
           <h1 className="page-title">Feed</h1>
           <p className="page-subtitle">
-            Latest visible paper activity from researchers you follow.
+            Trusted thread updates from researchers you follow.
           </p>
         </div>
       </header>

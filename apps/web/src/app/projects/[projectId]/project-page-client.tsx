@@ -162,12 +162,13 @@ export function ProjectPageClient({ projectId }: { projectId: string }) {
         <div>
           <h1 className="page-title">{project?.name ?? "Project"}</h1>
           <p className="page-subtitle">
-            {project?.description || "A private working set carved out of your library."}
+            {project?.description ||
+              "A private research space carved out of your library."}
           </p>
         </div>
         <div className="page-header-actions">
           <Link className="button" href="/projects">
-            All Projects
+            All Spaces
           </Link>
           <button
             className="button"
@@ -179,7 +180,7 @@ export function ProjectPageClient({ projectId }: { projectId: string }) {
             }}
             type="button"
           >
-            {deleteProjectMutation.isPending ? "Deleting" : "Delete Project"}
+            {deleteProjectMutation.isPending ? "Deleting" : "Delete Space"}
           </button>
         </div>
       </header>

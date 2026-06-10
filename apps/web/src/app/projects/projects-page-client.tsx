@@ -97,9 +97,9 @@ export function ProjectsPageClient() {
   return (
     <div className="projects-layout">
       <section className="surface project-create-panel">
-        <h2>Create project</h2>
+        <h2>Create space</h2>
         <p className="muted-text">
-          Build private working sets for a paper draft, literature review, or
+          Build a private space for a paper draft, literature review, or
           experiment track.
         </p>
         <form className="form-grid" onSubmit={submitProject}>
@@ -129,14 +129,14 @@ export function ProjectsPageClient() {
             disabled={createMutation.isPending}
             type="submit"
           >
-            {createMutation.isPending ? "Creating" : "Create Project"}
+            {createMutation.isPending ? "Creating" : "Create Space"}
           </button>
         </form>
         {status ? <div className="status-line compact">{status}</div> : null}
       </section>
       <section className="surface projects-list-panel">
         <div className="section-header">
-          <h2>Projects</h2>
+          <h2>Spaces</h2>
           <span className="muted-text">{projects.length} total</span>
         </div>
         {projectsQuery.isLoading ? (
@@ -154,7 +154,7 @@ export function ProjectsPageClient() {
         {!projectsQuery.isLoading && projects.length === 0 ? (
           <div className="empty-state">
             <h2>No projects yet</h2>
-            <p>Start with one project and add papers from your library.</p>
+            <p>Start with one space and add papers from your library.</p>
           </div>
         ) : null}
         <div className="projects-list">

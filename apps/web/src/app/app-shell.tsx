@@ -5,6 +5,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  ChevronRight,
   Shield,
   Library,
   Newspaper,
@@ -20,6 +21,12 @@ type CurrentProfile = {
   username: string;
   isAdmin: boolean;
 } | null;
+
+type RecentProject = {
+  id: string;
+  name: string;
+  paperCount: number;
+};
 
 type NavigationItem = {
   href: string;
@@ -55,9 +62,11 @@ function isModifiedClick(event: MouseEvent<HTMLAnchorElement>) {
 export function AppShell({
   children,
   profile,
+  recentProjects,
 }: {
   children: ReactNode;
   profile: CurrentProfile;
+  recentProjects: RecentProject[];
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -106,6 +115,9 @@ export function AppShell({
   }
 
   const isNavigating = Boolean(pendingHref);
+  const activeNavItem = visibleNavItems.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
 
   return (
     <div className="app-shell">
@@ -119,35 +131,85 @@ export function AppShell({
       ) : null}
       <aside className="sidebar">
         <div className="brand">
-          <Link
-            href="/library"
-            className="brand-name"
-            onClick={(event) => navigate(event, "/library", "Library")}
-          >
-            Cairn
-          </Link>
+          <div>
+            <div className="sidebar-section-label">Research workspace</div>
+            <Link
+              href="/library"
+              className="brand-name"
+              onClick={(event) => navigate(event, "/library", "Library")}
+            >
+              Cairn
+            </Link>
+          </div>
           <div className="brand-mark" aria-hidden="true" />
         </div>
-        <nav className="nav-list" aria-label="Primary navigation">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+        <div className="sidebar-stack">
+          <div className="sidebar-section">
+            <div className="sidebar-section-label">Workspace</div>
+            <nav className="nav-list" aria-label="Primary navigation">
+              {visibleNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-            return (
+                return (
+                  <Link
+                    aria-current={isActive ? "page" : undefined}
+                    className="nav-link"
+                    href={item.href}
+                    key={item.href}
+                    onClick={(event) => navigate(event, item.href, item.label)}
+                  >
+                    <Icon aria-hidden="true" size={17} strokeWidth={2} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+          <div className="sidebar-section">
+            <div className="sidebar-section-header">
+              <div className="sidebar-section-label">Spaces</div>
               <Link
-                aria-current={isActive ? "page" : undefined}
-                className="nav-link"
-                href={item.href}
-                key={item.href}
-                onClick={(event) => navigate(event, item.href, item.label)}
+                className="sidebar-section-action"
+                href="/projects"
+                onClick={(event) => navigate(event, "/projects", "Projects")}
               >
-                <Icon aria-hidden="true" size={17} strokeWidth={2} />
-                <span>{item.label}</span>
+                View all
               </Link>
-            );
-          })}
-        </nav>
+            </div>
+            <div className="sidebar-spaces">
+              {recentProjects.length > 0 ? (
+                recentProjects.map((project) => {
+                  const isActive =
+                    pathname === `/projects/${project.id}` ||
+                    pathname.startsWith(`/projects/${project.id}/`);
+
+                  return (
+                    <Link
+                      aria-current={isActive ? "page" : undefined}
+                      className="sidebar-space-link"
+                      href={`/projects/${project.id}`}
+                      key={project.id}
+                      onClick={(event) =>
+                        navigate(event, `/projects/${project.id}`, project.name)
+                      }
+                    >
+                      <span className="sidebar-space-name">{project.name}</span>
+                      <span className="sidebar-space-meta">
+                        {project.paperCount}
+                      </span>
+                    </Link>
+                  );
+                })
+              ) : (
+                <div className="sidebar-empty-copy">
+                  No spaces yet
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="account">
           <div className="account-label">Account</div>
           <div className="account-name">
@@ -179,7 +241,39 @@ export function AppShell({
           </div>
         </div>
       </aside>
-      <main className="main">{children}</main>
+      <main className="main">
+        <div className="workspace-header">
+          <div className="workspace-header-copy">
+            <div className="workspace-breadcrumb">
+              <span>Workspace</span>
+              <ChevronRight aria-hidden="true" size={14} strokeWidth={2} />
+              <span>{activeNavItem?.label ?? "Library"}</span>
+            </div>
+            <div className="workspace-header-title">
+              {activeNavItem?.href === "/projects"
+                ? "Spaces hold active research campaigns."
+                : "Threads hold the papers moving through your work."}
+            </div>
+          </div>
+          <div className="workspace-header-actions">
+            <Link
+              className="workspace-action"
+              href="/add"
+              onClick={(event) => navigate(event, "/add", "Add Paper")}
+            >
+              Add thread
+            </Link>
+            <Link
+              className="workspace-action"
+              href="/projects"
+              onClick={(event) => navigate(event, "/projects", "Projects")}
+            >
+              Open spaces
+            </Link>
+          </div>
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

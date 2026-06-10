@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getOptionalCurrentProfile } from "@/lib/server/profile";
+import { listProjectsForUser } from "@/lib/server/projects";
 import { AppShell } from "./app-shell";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -16,12 +17,17 @@ export default async function RootLayout({
   children: ReactNode;
 }>) {
   const profile = await getOptionalCurrentProfile();
+  const recentProjects = profile
+    ? (await listProjectsForUser(profile.id)).slice(0, 6)
+    : [];
 
   return (
     <html lang="en">
       <body>
         <Providers shouldPrefetchAppData={Boolean(profile)}>
-          <AppShell profile={profile}>{children}</AppShell>
+          <AppShell profile={profile} recentProjects={recentProjects}>
+            {children}
+          </AppShell>
         </Providers>
       </body>
     </html>

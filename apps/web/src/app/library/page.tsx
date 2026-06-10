@@ -13,8 +13,8 @@ export default async function LibraryPage() {
         <div>
           <h1 className="page-title">Library</h1>
           <p className="page-subtitle">
-            Your saved papers, reading state, and visible signals in one
-            scannable queue.
+            Your paper threads, reading state, and visible signals in one
+            scannable research queue.
           </p>
         </div>
         <Link className="button primary" href="/add">

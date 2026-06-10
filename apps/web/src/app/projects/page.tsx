@@ -12,8 +12,8 @@ export default async function ProjectsPage() {
         <div>
           <h1 className="page-title">Projects</h1>
           <p className="page-subtitle">
-            Organize library papers into private working sets for each research
-            campaign.
+            Private spaces for each research campaign, built from your library
+            threads.
           </p>
         </div>
       </header>
