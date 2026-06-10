@@ -11,6 +11,7 @@ import {
 } from "@/lib/server/capture-service";
 import { trackEvent } from "@/lib/server/analytics";
 import { getActiveBetaUserIds } from "@/lib/server/access";
+import { getProjectsForUserPaperIds } from "@/lib/server/projects";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 
 const savePaperSchema = z.object({
@@ -139,11 +140,15 @@ export const GET = withApiRoute(
     const profilesById = new Map(
       (profiles ?? []).map((profile) => [profile.id, profile]),
     );
+    const projectMemberships = userPaper
+      ? await getProjectsForUserPaperIds(user.id, [userPaper.id])
+      : new Map();
 
     return ok({
       paper,
       userPaper,
       privateNote,
+      projects: userPaper ? (projectMemberships.get(userPaper.id) ?? []) : [],
       followedContext: (followedUserPapers ?? []).map((row) => ({
         ...row,
         profile: profilesById.get(row.user_id) ?? null,

@@ -7,6 +7,7 @@ import { withApiRoute } from "@/lib/api/route";
 import { parseJsonBody } from "@/lib/api/validation";
 import { assertOwnsUserPaper, requireUser } from "@/lib/server/auth";
 import { trackEvent } from "@/lib/server/analytics";
+import { getProjectsForUserPaperIds } from "@/lib/server/projects";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 
 const removeSchema = z.object({
@@ -108,6 +109,10 @@ export const GET = withApiRoute(async (request) => {
   const paperIdsWithNotes = new Set(
     (noteRows ?? []).map((row) => row.paper_id),
   );
+  const projectMemberships = await getProjectsForUserPaperIds(
+    user.id,
+    pageRows.map((row) => row.id),
+  );
   const lastRow = pageRows.at(-1);
   const nextCursor =
     (data ?? []).length > limit && lastRow
@@ -121,6 +126,7 @@ export const GET = withApiRoute(async (request) => {
     items: pageRows.map((row) => ({
       ...row,
       hasPrivateNote: paperIdsWithNotes.has(row.paper_id),
+      projects: projectMemberships.get(row.id) ?? [],
     })),
     nextCursor,
   });
@@ -162,6 +168,15 @@ export const DELETE = withApiRoute(async (request) => {
 
   if (noteError) {
     throw noteError;
+  }
+
+  const { error: projectMembershipError } = await serviceClient
+    .from("project_papers")
+    .delete()
+    .eq("user_paper_id", input.userPaperId);
+
+  if (projectMembershipError) {
+    throw projectMembershipError;
   }
 
   await trackEvent({
